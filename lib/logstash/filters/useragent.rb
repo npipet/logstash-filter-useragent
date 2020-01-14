@@ -74,6 +74,9 @@ class LogStash::Filters::UserAgent < LogStash::Filters::Base
     @prefixed_os_major = "#{normalized_target}[#{@prefix}os_major]"
     @prefixed_os_minor = "#{normalized_target}[#{@prefix}os_minor]"
     @prefixed_device = "#{normalized_target}[#{@prefix}device]"
+    @prefixed_device_family = "#{normalized_target}[#{@prefix}device_family]"
+    @prefixed_device_brand = "#{normalized_target}[#{@prefix}device_brand]"
+    @prefixed_device_model = "#{normalized_target}[#{@prefix}device_model]"
     @prefixed_major = "#{normalized_target}[#{@prefix}major]"
     @prefixed_minor = "#{normalized_target}[#{@prefix}minor]"
     @prefixed_patch = "#{normalized_target}[#{@prefix}patch]"
@@ -135,8 +138,15 @@ class LogStash::Filters::UserAgent < LogStash::Filters::Base
       end
     end
 
-    event.set(@prefixed_device, ua_data.device.to_s.dup.force_encoding(Encoding::UTF_8)) if ua_data.device
+    if (device = ua_data.device)
+      # Keep this field for backward compatibility
+      event.set(@prefixed_device, ua_data.device.to_s.dup.force_encoding(Encoding::UTF_8)) if ua_data.device
 
+      event.set(@prefixed_device_family, ua_data.device.family.dup.force_encoding(Encoding::UTF_8)) if device.family
+      event.set(@prefixed_device_brand, ua_data.device.brand.dup.force_encoding(Encoding::UTF_8)) if device.brand
+      event.set(@prefixed_device_model, ua_data.device.model.dup.force_encoding(Encoding::UTF_8)) if device.model
+    end
+    
     if (ua_version = ua_data.userAgent)
       event.set(@prefixed_major, ua_version.major.dup.force_encoding(Encoding::UTF_8)) if ua_version.major
       event.set(@prefixed_minor, ua_version.minor.dup.force_encoding(Encoding::UTF_8)) if ua_version.minor
